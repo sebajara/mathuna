@@ -1,5 +1,3 @@
-Kahuna game in Matlab (not open).
+Kahuna game in Matlab.
 
-The game is not finished, but you can play! 
-
-IF you have any questions write me.
+If you have any questions write me.

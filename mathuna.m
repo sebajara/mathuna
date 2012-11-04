@@ -14,7 +14,7 @@ boardY1 = 20;
 boardY2 = 420;
 cardFS = 10; % Default font size of cards handles
 P1color = 'r'; % Player 1 color
-P2color = 'black'; % Player 2 color
+P2color = 'm'; % Player 2 color
 opencardcolor = 'y'; % color for opencards handles
 deckcolor = 'b'; % color for deck pile handle
 
@@ -43,15 +43,12 @@ hround = uicontrol('Style','text','String','Round',...
 hquitbutton = uicontrol('Style','pushbutton',...
     'String','Quit','Callback',@hquitbutton_Callback,...
     'Position',[840,380,70,30]); % Quit game
-hrestartbutton = uicontrol('Style','pushbutton',...
-    'String','Restart','Callback',@hrestartbutton_Callback,...
-    'Position',[760,380,70,30],'Visible','off'); % Restart the game
 hstartbutton = uicontrol('Style','pushbutton',...
     'String','Start','Callback',@hstartbutton_Callback,...
-    'Position',[680,380,70,30]); % Start the game
-hpausebutton = uicontrol('Style','pushbutton',...
-    'String','Pause','Callback',@hpausebutton_Callback,...
-    'Position',[600,380,70,30],'Visible','off'); % Pause the game
+    'Position',[760,380,70,30]); % Start the game
+hmodemenu = uicontrol('Style','popup',...
+    'String','1VS2|1VSR|RVSR','Callback',@hmodemenu_Callback,...
+    'Position',[650,375,100,30]); %
 
 %% Drawable cards
 hopencard1 = uicontrol('Style','pushbutton',...
@@ -142,7 +139,7 @@ set([gamefigure,ha,hmessages,hscore,hround,...
     hP2card1,hP2card2,hP2card3,hP2card4,hP2card5,...
     hdiscardmenu,hdestroymenu,hbuildmenu,hfinishbutton,...
     hdiscardtitle,hdestroytitle,hbuildtitle...
-    hpausebutton,hstartbutton,hrestartbutton,hquitbutton],...
+    hstartbutton,hquitbutton,hmodemenu],...
     'Units','normalized');
 
 %% Islands and bidges
@@ -245,13 +242,13 @@ disy = 10; % Delta y from the island location to build Mathuna diamond
 
 %% Players (1,2)
 % Players structures
-Phand = ['     '; ...
-    '     '];
-Pnotempcards = [0,0,0,0,0; ...
-    0,0,0,0,0]; % Not empty cards
+Phand = ['     ';'     '];
+Pnotempcards = [0,0,0,0,0;0,0,0,0,0]; % Not empty cards
 Pscore = [0,0];
 usedbridge = zeros(2,length(bridges)); % birdges displayed
 activematlh = zeros(2,length(isabr)); % island with mathuna
+Pmode = [1,1];
+Pnames = {'P1','P2'};
 
 % Players Handles
 Phbridges(1,:) = makebridges(P1color);
@@ -269,11 +266,9 @@ emptyopencards = [0 0 0];
 %% Saving data
 fid = 1;
 gamedata = {0,0,0,0,'',0};
-lastactions = [''];
+lastactions = '';
 pgamedata = {'','','';'','',''};
 %% Game parameters
-allowpause = 0;
-allowrestart = 0;
 areweplaying = 0; % Control if the game is going or not
 cplayer = 1; % Current player in turn
 cdeckcard = 1; % Next card in the deck
@@ -281,10 +276,13 @@ cdeck = []; % Current deck
 cround = 1; % Current round
 flippause = 0;
 allowfinish = 1;
+allodmodechange = 1;
+gamemode = 1;
+areweprinting = 0;
 
 %% Final game settings
 % Assign the GUI a name to appear in the window title.
-set(gamefigure,'Name','MATLHUNA 0.5')
+set(gamefigure,'Name','MATLHUNA 1')
 % Move the GUI to the center of the screen.
 movegui(gamefigure,'center')
 % Make the GUI visible.
@@ -298,39 +296,19 @@ set(gamefigure,'Visible','on')
         % Not used...
     end
 
-    function hpausebutton_Callback(~,~)
-        % Not used...
-        % This function change the value of AREWEPLAYING
-        % from 1 to 0, and from 0 to 1.
-        % TODO: In the future while saving the data from a game
-        % I want to save the time bewteen turns.
-        % This callback would be to stop the time counter.
-        if (allowpause)
-            if (areweplaying == 1)
-                areweplaying = 0;
-                set(hpausebutton,'String','Play');
-            else
-                areweplaying = 1;
-                set(hpausebutton,'String','Pause');
-            end
-        end
-    end
     function hstartbutton_Callback(~,~)
         % This function begin the game.
         % Set the three control variables for callbacks to 1:
         % ALLOWPAUSE, ALLORESTART, and AREWEPLAYING.
         % Finally calls @defaultinitround
-        allowpause = 1;
-        allowrestart = 1;
+        allodmodechange = 0;
         areweplaying = 1; % control all callbacks
         cplayer = 1; % Current player in turn
         cdeckcard = 1; % Next card in the deck
         cdeck = []; % Current deck
         cround = 1; % Current round
-        Phand = ['     '; ...
-            '     '];
-        Pnotempcards = [0,0,0,0,0; ...
-            0,0,0,0,0];
+        Phand = ['     ';'     '];
+        Pnotempcards = [0,0,0,0,0;0,0,0,0,0];
         Pscore = [0,0];
         usedbridge = zeros(2,length(bridges));
         activematlh = zeros(2,length(isabr));
@@ -341,73 +319,58 @@ set(gamefigure,'Visible','on')
             for b=1:length(bridges)
                 bline = Phbridges(p,b);
                 set(bline,'Visible','off');
-                
             end
         end
         tic;
         defaultinitround();
-        hidePcards (otherplayer(cplayer));
-        showPcards (cplayer);
-        for n = 1:3
-            updatepopup(n,cplayer);
-            deck2opencard(n); % place 3 open cards
-        end
         gamedata = {0,0,0,0,'',0};
-        lastactions = [''];
+        lastactions = '';
         pgamedata = {'','','';'','',''};
-        fid = fopen(['mathuna-1vs2_',datestr(clock),'.txt'],'w');
+        fid = fopen(get_file_name(),'w');
+        areweprinting = 1;
         printheader();
         updategamedata();
         updatepgamedata(cplayer);
         updatepgamedata(otherplayer(cplayer));
         exportdata1();
-    end
-    function hrestartbutton_Callback(~,~)
-        %% Not in use for now... bugy
-        if (allowrestart)
-            cplayer = 1; % Current player in turn
-            cdeckcard = 1; % Next card in the deck
-            cdeck = []; % Current deck
-            cround = 1; % Current round
-            Phand = ['     '; ...
-                '     '];
-            Pnotempcards = [0,0,0,0,0; ...
-                0,0,0,0,0];
-            Pscore = [0,0];
-            usedbridge = zeros(2,length(bridges));
-            activematlh = zeros(2,length(isabr));
-            for p = 1:2
-                for i = 1:length(isabr)
-                    set(Phismatlh(p,i),'Visible','off');
-                end
-                for b=1:length(bridges)
-                    bline = Phbridges(p,b);
-                    set(bline,'Visible','off');
-                    
-                end
-            end
-            defaultinitround();
+        if (gamemode  < 3)
+        if (Pmode(cplayer) == 1)
             hidePcards (otherplayer(cplayer));
             showPcards (cplayer);
             for n = 1:3
                 updatepopup(n,cplayer);
                 deck2opencard(n); % place 3 open cards
             end
-            tic;
-            close(fid);
-            gamedata = {0,0,0,0,'',0};
-            lastactions = [''];
-            pgamedata = {'','','';'','',''};
-            fid = fopen(['mathuna-1vs2',datestr(clock),'.txt'],'w');
-            printheader();
-            %updategamedata();
-            %updatepgamedata(cplayer);
-            %updatepgamedata(otherplayer(cplayer));
+        else(Pmode(cplayer) == 2)
+            %randomplayer(cplayer);
+        end
+        else
+            while(areweplaying)
+                randomplayer(cplayer); % R1
+                randomplayer(cplayer); % R2
+            end
         end
     end
     function hquitbutton_Callback(~,~)
-        fclose(fid);
+        endgame();
         close(gamefigure);
+    end
+    function hmodemenu_Callback(hObj,~)
+        if (allodmodechange)
+            val = get(hObj,'Value');
+            if (val == 2)
+                Pmode(2) = 2; % random P2
+                Pnames(2) = {'P2-R'};
+            elseif(val == 3)
+                Pmode(1) = 2; % random P1
+                Pnames(1) = {'P1-R'};
+                Pmode(2) = 2; % random P2
+                Pnames(2) = {'P2-R'};
+            end
+            gamemode = val;
+        else
+            set(hObj,'Value',gamemode);
+        end
     end
 
 % Open cards
@@ -416,7 +379,7 @@ set(gamefigure,'Visible','on')
             card = drawopencard(1);
             if (not(strcmp(card,'')))
                 lastactions = [lastactions,';D:',card,'(O)'];
-                hfinishbutton_Callback(0,0);
+                hfinishbutton_Callback();
             end
         end
     end
@@ -497,6 +460,7 @@ set(gamefigure,'Visible','on')
             end
         end
     end
+
     function hdestroymenu_Callback(hObj,event)
         if (areweplaying)
             val = get(hObj,'Value');
@@ -505,13 +469,8 @@ set(gamefigure,'Visible','on')
                 selected = s(val,:);
                 b = selected(1:2);
                 cardpair = selected(5:6);
-                switchbridge(otherplayer(cplayer),b);
-                removecard(cplayer,cardpair(1));
-                removecard(cplayer,cardpair(2));
-                lastactions = [lastactions,';2:',b,'(',cardpair,')'];
+                destroybridge(cplayer,b,cardpair);
                 showPcards (cplayer);
-                updatekahuna(otherplayer(cplayer),b(1));
-                updatekahuna(otherplayer(cplayer),b(2));
                 for n = 1:3
                     updatepopup(n,cplayer);
                 end
@@ -519,7 +478,7 @@ set(gamefigure,'Visible','on')
             end
         end
     end
-    function hbuildmenu_Callback(hObj,event)
+    function hbuildmenu_Callback(hObj,~)
         if (areweplaying)
             val = get(hObj,'Value');
             if (val > 1)
@@ -527,11 +486,7 @@ set(gamefigure,'Visible','on')
                 selected = s(val,:);
                 b = selected(1:2);
                 usedcard = selected(5);
-                switchbridge(cplayer,b);
-                removecard(cplayer,usedcard);
-                lastactions = [lastactions,';3:',b,'(',usedcard,')'];
-                updatekahuna(cplayer,b(1));
-                updatekahuna(cplayer,b(2));
+                buildbridge(cplayer,b,usedcard);
                 showPcards (cplayer);
                 for n = 1:3
                     updatepopup(n,cplayer);
@@ -545,20 +500,8 @@ set(gamefigure,'Visible','on')
     function hfinishbutton_Callback(~,~)
         if (areweplaying && allowfinish)
             allowfinish = 0;
-            if (sum(emptyopencards) == 3) % if the three opencards are empty
-                if (cround < 3)
-                    changeround();
-                elseif ((cround == 3) && ...
-                        (sum(Pnotempcards(2,:)) == 0) && ...
-                        (sum(Pnotempcards(1,:)) == 0))
-                    endgame();
-                end
-            end
-            if((cround > 1) && ...
-                    (sum(usedbridge(2,:)) == 0) && ...
-                    (sum(usedbridge(1,:)) == 0))
-                %%endgame();
-            end
+            % Allow finish is a hack to prevent pressing finish_button several times
+            check_for_end ();
             if(areweplaying)
                 updatepgamedata(cplayer);
                 updatepgamedata(otherplayer(cplayer));
@@ -566,30 +509,170 @@ set(gamefigure,'Visible','on')
                 lastactions = '';
                 
                 changeplayer();
-                flipcards(flippause);
-                defaultmessage();
-                for n = 1:3
-                    updatepopup(n,cplayer);
-                end
                 updategamedata();
                 updatepgamedata(cplayer);
                 updatepgamedata(otherplayer(cplayer));
                 exportdata1();
+                
+                if (Pmode(cplayer) == 1)
+                    flipcards(flippause);
+                    defaultmessage();
+                    for n = 1:3
+                        updatepopup(n,cplayer);
+                    end
+                elseif(Pmode(cplayer) == 2)
+                    randomplayer(cplayer);
+                end
             end
             allowfinish = 1;
         end
     end
-
+    function check_for_end ()
+        if (sum(emptyopencards) == 3) % if the three opencards are empty..
+            if (cround < 3)
+                changeround(); % Next round
+            elseif ((cround == 3) && ...
+                    ((strcmp(getdestroyablesb(1),'')) && ...
+                    (strcmp(getdestroyablesb(2),'')) && ...
+                    (strcmp(getbuildablesb(1),'')) && ...
+                    (strcmp(getbuildablesb(2),'')))) % No more moves
+                endgame();
+            end
+        end
+        if((cround > 1) && ...
+                ((sum(usedbridge(2,:)) == 0) || ...
+                (sum(usedbridge(1,:)) == 0)))
+            % if one player has no bridges after round 1
+            endgame();
+        end
+    end
+    function randomplayer (player)
+        %% Here random player should do its thing
+        areweplaying = 0;
+        for n = 1:3
+            set(menushandles(n),'Visible','off');
+        end
+        exit = 0;
+        if (gamemode == 3)
+             showPcards (cplayer);
+             showPcards (otherplayer(cplayer));
+             pause(0.1);
+        end
+        while(exit == 0)
+            options = [1];
+            potdiscard = gethandcards(player);
+            potbuild = getbuildablesb(player);
+            potdistroy = getdestroyablesb(player);
+            %%showPcards (player);
+            if (not(strcmp(potdiscard,'')))
+                options = [2,options];
+            end
+            if (not(strcmp(potdistroy,'')))
+                if (gamemode == 2)
+                options = [3,3,3,3,options];
+                elseif(gamemode == 3)
+                options = [3,options];
+                end
+            end
+            if (not(strcmp(potbuild,'')))
+                if (gamemode == 2)
+                options = [4,4,4,4,4,4,4,4,options];
+                elseif(gamemode == 3)
+                options = [4,options];
+                end
+            end
+            randoptions = randperm(length(options));
+            action = options(randoptions(1));
+            if (action == 1)
+                % draw and finish
+                exit = 1;
+            elseif (action == 2)
+                % discard rnd
+                randdiscards = randperm(length(potdiscard));
+                card = potdiscard(randdiscards(1));
+                removecard(player,card);
+                lastactions = [lastactions,';1:',card];
+            elseif (action == 3)
+                % distroy rnd
+                randdistroy = randperm(length(potdistroy)/7);
+                selected = randdistroy(1);
+                init = 7*(selected-1) + 1;
+                bridge = potdistroy(init:(init+1));
+                cards = potdistroy((init+4):(init+5));
+                destroybridge(player,bridge,cards);
+            elseif (action == 4)
+                % build rnd
+                randbuild = randperm(length(potbuild)/6);
+                selected = randbuild(1);
+                init = 6*(selected-1) + 1;
+                bridge = potbuild(init:(init+1));
+                card = potbuild(init+4);
+                buildbridge (player,bridge,card);
+            end
+        end
+        %Drawing of card
+        options = [];
+        if (sum(Pnotempcards(player,:)) < 5)
+            if (remainingcards() > 0)
+                options = [4,options];
+            end
+            for n = 1:3
+                if (emptyopencards(n) == 0)
+                    options = [n,options];
+                end
+            end
+            if (not(isempty(options)))
+                randoptions = randperm(length(options));
+                action = options(randoptions(1));
+                if (action == 4)
+                    card = drawfromdeck(player);
+                    lastactions = [lastactions,';D:',card,'(D)'];
+                else
+                    card = drawopencard(action);
+                    lastactions = [lastactions,';D:',card,'(O)'];
+                end
+            end
+        end
+        %% Like finish button
+        updatepgamedata(cplayer);
+        updatepgamedata(otherplayer(cplayer));
+        exportdata2();
+        lastactions = '';
+        changeplayer();
+        updategamedata();
+        updatepgamedata(cplayer);
+        updatepgamedata(otherplayer(cplayer));
+        exportdata1();
+        if (gamemode == 2)
+            pause(0.5);
+            showPcards (cplayer);
+        elseif(gamemode == 3)
+            showPcards (cplayer);
+            showPcards (otherplayer(cplayer));
+        end
+        for n = 1:3
+            set(menushandles(n),'Visible','on');
+        end
+        areweplaying = 1;
+        %allowfinish = 1;
+        %hfinishbutton_Callback(0,0); % Horrible!
+        defaultmessage();
+        
+        for n = 1:3
+            updatepopup(n,cplayer);
+        end
+        check_for_end ();
+    end
 %% Rounds and game ending
     function changeround ()
         if (cround < 3)
             if (sum(activematlh(1,:)) == sum(activematlh(2,:)))
-                Pscore(1) = Pscore(1) + 1;
-                Pscore(2) = Pscore(2) + 1;
+                Pscore(1) = Pscore(1) + cround;
+                Pscore(2) = Pscore(2) + cround;
             elseif (sum(activematlh(1,:)) > sum(activematlh(2,:)))
-                Pscore(1) = Pscore(1) + 1;
+                Pscore(1) = Pscore(1) + cround;
             else
-                Pscore(2) = Pscore(2) + 1;
+                Pscore(2) = Pscore(2) + cround;
             end
             cround = cround + 1;
         end
@@ -619,8 +702,8 @@ set(gamefigure,'Visible','on')
         updateroundm();
         updatedeckm();
     end
+
     function endgame()
-        allowpause = 0;
         areweplaying = 0;
         Pscore(1) = Pscore(1) + sum(activematlh(1,:)) ;
         Pscore(2) = Pscore(2) + sum(activematlh(2,:));
@@ -628,14 +711,25 @@ set(gamefigure,'Visible','on')
         if (Pscore(1) == Pscore(2))
             updatemessage('Tied game!');
         elseif (Pscore(1) > Pscore(2))
-            updatemessage('Congratulations player 1!');
+            mess = ['Congratulations ', char(Pnames(1)), '!'];
+            updatemessage(mess);
         else
-            updatemessage('Congratulations player 2!');
+            mess = ['Congratulations ', char(Pnames(2)), '!'];
+            updatemessage(mess);
         end
         updatepgamedata(cplayer);
         updatepgamedata(otherplayer(cplayer));
         exportdata2();
-        fclose(fid);
+        if (areweprinting)
+            %% Add a final message w the final scores!
+            fprintf(fid,'--------\nFINAL SCORES: %s:%d%s:%d',char(Pnames(1)),Pscore(1),char(Pnames(2)),Pscore(2));
+            fclose(fid);
+            areweprinting = 0;
+        end
+        if (gamemode == 3)
+            pause(1);
+            hstartbutton_Callback(0,0);
+        end
     end
 
 %% Update handles strings
@@ -669,20 +763,20 @@ set(gamefigure,'Visible','on')
         set(menushandles(n),'String',s);
         set(menushandles(n),'ForegroundColor',color);
     end
-    function flipcards(p) % p = the time for pause
-        if (cplayer == 2)
-            showPcards (1);
-            pause(p/2);
-            hidePcards (1);
-            pause(p/2);
-            showPcards (2);
-        else
-            showPcards (2);
-            pause(p/2);
-            hidePcards (2);
-            pause(p);
-            showPcards (1);
-        end
+    function buildbridge (player,bridge,card)
+        switchbridge(player,bridge);
+        removecard(player,card);
+        lastactions = [lastactions,';3:',bridge,'(',card,')'];
+        updatekahuna(player,bridge(1));
+        updatekahuna(player,bridge(2));
+    end
+    function destroybridge (player,bridge,cards)
+        switchbridge(otherplayer(player),bridge);
+        removecard(player,cards(1));
+        removecard(player,cards(2));
+        lastactions = [lastactions,';2:',bridge,'(',cards,')'];
+        updatekahuna(otherplayer(player),bridge(1));
+        updatekahuna(otherplayer(player),bridge(2));
     end
     function removecard (player,card)
         for i = 1:5
@@ -704,7 +798,11 @@ set(gamefigure,'Visible','on')
         end
     end
     function defaultmessage ()
-        updatemessage(['Player ' num2str(cplayer) '! your turn']);
+        if (areweplaying)
+            updatemessage(['Player ' num2str(cplayer) '! your turn']);
+        else
+            updatemessage('Press start to begin the game');
+        end
     end
     function updatescorem()
         set(hscore,'String',['Score: P1=',num2str(Pscore(1)),'; P2=',num2str(Pscore(2))]);
@@ -721,38 +819,41 @@ set(gamefigure,'Visible','on')
 
 %% Update visibility of objects
     function switchbridge (player,bridge)
-        if (usedbridge(player,index.(b)) > 0)
-            bline = Phbridges(player,index.(b));
+        if (usedbridge(player,index.(bridge)) > 0)
+            bline = Phbridges(player,index.(bridge));
             set(bline,'Visible','off');
-            usedbridge(player,index.(b)) = 0;
+            usedbridge(player,index.(bridge)) = 0;
         else
-            bline = Phbridges(cplayer,index.(b));
+            bline = Phbridges(cplayer,index.(bridge));
             set(bline,'Visible','on');
-            usedbridge(cplayer,index.(b)) = 1;
+            usedbridge(cplayer,index.(bridge)) = 1;
         end
     end
     function updatekahuna (player,isl)
-        bindex = isl2bridg.(isl);
+        bindex = isl2bridg.(isl); % index of bridges of isl
         totalb = 0;
         for j = 1:length(bindex)
             b5 = char(bridges(bindex(j)));
+            % total number of from player bridges in isl
             totalb = totalb + usedbridge(player,index.(b5));
         end
-        if (totalb > isl2bcount.(isl)/2)
-            if (not (activematlh(player,index.(isl))))
+        if (totalb > isl2bcount.(isl)/2) % if is bigger than half...
+            if (not (activematlh(player,index.(isl)))) 
+                % if the mathuna is off, set it on
                 set(Phismatlh(player,index.(isl)),'Visible','on');
                 % remove bridges from the other player on the island
                 bindex = isl2bridg.(isl);
-                for q = 1:length(bindex)
-                    b = char(bridges(bindex(q)));
-                    if (usedbridge(otherplayer(player),index.(b)) > 0)
+                for q = 1:length(bindex) 
+                    b = char(bridges(bindex(q))); % for each bridge
+                    if (usedbridge(otherplayer(player),index.(b)) > 0) 
+                        % if the other player has a bridge there
                         bline = Phbridges(otherplayer(cplayer),index.(b));
-                        set(bline,'Visible','off');
+                        set(bline,'Visible','off'); % set it off
                         usedbridge(otherplayer(cplayer),index.(b)) = 0;
-                        if (strcmp(isl,b(1)))
-                            updatekahuna (player,b(1));
+                        if (strcmp(isl,b(1))) % updatekahuna of the other island
+                            updatekahuna (otherplayer(player),b(2));
                         else
-                            updatekahuna (player,b(2));
+                            updatekahuna (otherplayer(player),b(1));
                         end
                     end
                 end
@@ -763,6 +864,21 @@ set(gamefigure,'Visible','on')
                 set(Phismatlh(player,index.(isl)),'Visible','off');
                 activematlh(player,index.(isl)) = 0;
             end
+        end
+    end
+    function flipcards(p) % p = the time for pause
+        if (cplayer == 2)
+            showPcards (1);
+            pause(p/2);
+            hidePcards (1);
+            pause(p/2);
+            showPcards (2);
+        else
+            showPcards (2);
+            pause(p/2);
+            hidePcards (2);
+            pause(p);
+            showPcards (1);
         end
     end
 
@@ -844,6 +960,9 @@ set(gamefigure,'Visible','on')
                 s = [s,'&',char(bridges(i))];
             end
         end
+        if (length(s) > 0)
+            s = s(2:end); %% remove the first char
+        end
     end
     function [s] = getmathunas (player)
         s = '';
@@ -853,6 +972,7 @@ set(gamefigure,'Visible','on')
             end
         end
     end
+
 %% Draw functions
     function [card] = drawfromdeck (player)
         card = '';
@@ -911,6 +1031,7 @@ set(gamefigure,'Visible','on')
             set(handles(i),'Visible','off');
         end
     end
+
 %% I/O
     function updategamedata()
         gamedata(1) = {cell2mat(gamedata(1)) + 1}; % turn
@@ -922,38 +1043,50 @@ set(gamefigure,'Visible','on')
     end
     function updatepgamedata(player)
         pgamedata(player,1) = {gethandcards(player)}; %hands
-        temp = getbridges(player);
-        if (length(temp) > 0)
-            temp = temp(2:end); %% remove the first char
-        end
-        pgamedata(player,2) = {temp}; %bridges
-        pgamedata(player,3) = {getmathunas(player)};%mathuna
+        pgamedata(player,2) = {getbridges(player)};   %bridges
+        pgamedata(player,3) = {getmathunas(player)};  %mathuna
     end
     function exportdata1()
-        fprintf(fid,'%d\t%d\t%d\t%d\t%s\t%d',...
-            cell2mat(gamedata(1)),cell2mat(gamedata(2)),...
-            cell2mat(gamedata(3)),cell2mat(gamedata(4)),...
-            cell2mat(gamedata(5)),cell2mat(gamedata(6)));
-        fprintf(fid,'\t%s\t%s\t%s',...
-            cell2mat(pgamedata(cell2mat(gamedata(2)),1)),...
-            cell2mat(pgamedata(cell2mat(gamedata(2)),2)),...,
-            cell2mat(pgamedata(cell2mat(gamedata(2)),3)));
+        if (areweprinting)
+            fprintf(fid,'%d\t%s\t%d\t%d\t%s\t%d',...
+                cell2mat(gamedata(1)),cell2mat(Pnames(cell2mat(gamedata(2)))),...
+                cell2mat(gamedata(3)),cell2mat(gamedata(4)),...
+                cell2mat(gamedata(5)),cell2mat(gamedata(6)));
+            fprintf(fid,'\t%s\t%s\t%s',...
+                cell2mat(pgamedata(cell2mat(gamedata(2)),1)),...
+                cell2mat(pgamedata(cell2mat(gamedata(2)),2)),...,
+                cell2mat(pgamedata(cell2mat(gamedata(2)),3)));
+        end
     end
     function exportdata2()
         if (length(lastactions) > 0)
             lastactions = lastactions(2:end); %% remove the first char
         end
-        fprintf(fid,'\t%s',lastactions);
-        fprintf(fid,'\t%s\t%s\t%s',...
-            cell2mat(pgamedata(cell2mat(gamedata(2)),1)),...
-            cell2mat(pgamedata(cell2mat(gamedata(2)),2)),...,
-            cell2mat(pgamedata(cell2mat(gamedata(2)),3)));
-        fprintf(fid,'\t%d',Pscore(cell2mat(gamedata(2))));
-        fprintf(fid,'\n');
+        if(areweprinting)
+            fprintf(fid,'\t%s',lastactions);
+            fprintf(fid,'\t%s\t%s\t%s',...
+                cell2mat(pgamedata(cell2mat(gamedata(2)),1)),...
+                cell2mat(pgamedata(cell2mat(gamedata(2)),2)),...,
+                cell2mat(pgamedata(cell2mat(gamedata(2)),3)));
+            fprintf(fid,'\t%d',Pscore(cell2mat(gamedata(2))));
+            fprintf(fid,'\n');
+        end
     end
     function printheader()
-        fprintf(fid,'#turn\tplayer\tround\ttime\topencars\tndeckcards\thand_i\tbridges_i\tmathuna_i\tactions\thand_f\tbridges_f\tmathuna_f\tscore\n');
+        if(areweprinting)
+            fprintf(fid,'turn\tplayer\tround\ttime\topencars\tndeckcards\thand_i\tbridges_i\tmathuna_i\tactions\thand_f\tbridges_f\tmathuna_f\tscore\n');
+        end
     end
+    function name = get_file_name()
+        date = datestr(now,'dd-mm-yyyy_HH-MM-SS');
+        mode = get(hmodemenu,'String');
+        mode = mode(gamemode,:);
+        if (gamemode == 1)
+            mode = mode(1:4);
+        end
+        name = ['mathuna','_',mode,'_',date,'.tsv'];
+    end
+
 %% Other functions
     function changeplayer ()
         cplayer = otherplayer(cplayer);
