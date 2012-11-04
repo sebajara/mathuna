@@ -274,7 +274,7 @@ cplayer = 1; % Current player in turn
 cdeckcard = 1; % Next card in the deck
 cdeck = []; % Current deck
 cround = 1; % Current round
-flippause = 0;
+flippause = 2;
 allowfinish = 1;
 allodmodechange = 1;
 gamemode = 1;
@@ -515,7 +515,7 @@ set(gamefigure,'Visible','on')
                 exportdata1();
                 
                 if (Pmode(cplayer) == 1)
-                    flipcards(flippause);
+                  flipcards(flippause);
                     defaultmessage();
                     for n = 1:3
                         updatepopup(n,cplayer);
