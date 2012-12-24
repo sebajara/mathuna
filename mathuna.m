@@ -728,7 +728,7 @@ function mathuna
         end
         if (gamemode == 3)
             pause(0);
-            hstartbutton_Callback(0,0);
+            %hstartbutton_Callback(0,0);
         end
     end
 
