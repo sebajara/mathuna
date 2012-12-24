@@ -79,6 +79,7 @@ multiple actions before ending the turn.
 
 A record of each game is saved into a tab-delimited format file into
 the current MATLAB directory. We have provided a simple function 
-`parse\_tsv` that would retrieve this data. For more information 
+`parse_tsv` that would retrieve this data. For more information 
 type
+
       >> help parse\_tsv
