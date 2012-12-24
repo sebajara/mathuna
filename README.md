@@ -82,4 +82,4 @@ the current MATLAB directory. We have provided a simple function
 `parse_tsv` that would retrieve this data. For more information 
 type
 
-      >> help parse\_tsv
+      >> help parse_tsv
