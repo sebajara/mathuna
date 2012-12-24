@@ -3,304 +3,304 @@ function mathuna
 
 %% Parameters for positions and colors of figures and some handles
 % The position of the game figure will be [figX1,figX2,figY1,figY2]
-figX1 = 0;
-figX2 = 1000;
-figY1 = 0;
-figY2 = 500;
-% The position of the board axes will be [boardX1,boardX2,boardY1,boardY2]
-boardX1 = 20;
-boardX2 = 420;
-boardY1 = 20;
-boardY2 = 420;
-cardFS = 10; % Default font size of cards handles
-P1color = 'r'; % Player 1 color
-P2color = 'm'; % Player 2 color
-opencardcolor = 'y'; % color for opencards handles
-deckcolor = 'b'; % color for deck pile handle
+    figX1 = 0;
+    figX2 = 1000;
+    figY1 = 0;
+    figY2 = 500;
+    % The position of the board axes will be [boardX1,boardX2,boardY1,boardY2]
+    boardX1 = 20;
+    boardX2 = 420;
+    boardY1 = 20;
+    boardY2 = 420;
+    cardFS = 10; % Default font size of cards handles
+    P1color = 'r'; % Player 1 color
+    P2color = 'm'; % Player 2 color
+    opencardcolor = 'y'; % color for opencards handles
+    deckcolor = 'b'; % color for deck pile handle
 
-%% Create and hide the GUI figure as it is being constructed.
-gamefigure = figure('Visible','off','Tag','gamefigure','Position',[figX1,figY1,figX2,figY2]);
+    %% Create and hide the GUI figure as it is being constructed.
+    gamefigure = figure('Visible','off','Tag','gamefigure','Position',[figX1,figY1,figX2,figY2]);
 
-% To capture mouse and keyboard
-set(gamefigure,'WindowKeyPressFcn',@keypress);
-set(gamefigure,'WindowButtonUpFcn',@click);
+    % To capture mouse and keyboard
+    set(gamefigure,'WindowKeyPressFcn',@keypress);
+    set(gamefigure,'WindowButtonUpFcn',@click);
 
-%% Create axes and display board
-boardim=imread('board.jpg');
-ha = axes('Units','Pixels','Position',[boardX1,boardY1,boardX2,boardY2]);
-imshow(boardim);
+    %% Create axes and display board
+    boardim=imread('board.jpg');
+    ha = axes('Units','Pixels','Position',[boardX1,boardY1,boardX2,boardY2]);
+    imshow(boardim);
 
-%% Game messages
-hmessages = uicontrol('Style','text','String','Press start to begin the game',...
-    'Position',[50,430,350,50],'FontSize',20, ...
-    'ForegroundColor','white','BackgroundColor','black'); % Display instructions
-hscore = uicontrol('Style','text','String','Score',...
-    'Position',[710,450,220,30],'FontSize',20); % Display the current score
-hround = uicontrol('Style','text','String','Round',...
-    'Position',[560,450,140,30],'FontSize',20); % Display the current round
+    %% Game messages
+    hmessages = uicontrol('Style','text','String','Press start to begin the game',...
+                          'Position',[50,430,350,50],'FontSize',14, ...
+                          'ForegroundColor','white','BackgroundColor','black'); % Display instructions
+    hscore = uicontrol('Style','text','String','Score',...
+                       'Position',[710,450,220,30],'FontSize',14); % Display the current score
+    hround = uicontrol('Style','text','String','Round',...
+                       'Position',[560,450,140,30],'FontSize',14); % Display the current round
 
-%% Game highlevel control
-hquitbutton = uicontrol('Style','pushbutton',...
-    'String','Quit','Callback',@hquitbutton_Callback,...
-    'Position',[840,380,70,30]); % Quit game
-hstartbutton = uicontrol('Style','pushbutton',...
-    'String','Start','Callback',@hstartbutton_Callback,...
-    'Position',[760,380,70,30]); % Start the game
-hmodemenu = uicontrol('Style','popup',...
-    'String','1VS2|1VSR|RVSR','Callback',@hmodemenu_Callback,...
-    'Position',[650,375,100,30]); %
+    %% Game highlevel control
+    hquitbutton = uicontrol('Style','pushbutton',...
+                            'String','Quit','Callback',@hquitbutton_Callback,...
+                            'Position',[840,380,70,30]); % Quit game
+    hstartbutton = uicontrol('Style','pushbutton',...
+                             'String','Start','Callback',@hstartbutton_Callback,...
+                             'Position',[760,380,70,30]); % Start the game
+    hmodemenu = uicontrol('Style','popup',...
+                          'String','1VS2|1VSR|RVSR','Callback',@hmodemenu_Callback,...
+                          'Position',[650,375,100,30]); %
 
-%% Drawable cards
-hopencard1 = uicontrol('Style','pushbutton',...
-    'String','','Callback',@hopencard1_Callback,...
-    'Position',[460,330,70,90],'FontSize',cardFS,'BackgroundColor',opencardcolor);
-% 1th open card
-hopencard2 = uicontrol('Style','pushbutton',...
-    'String','','Callback',@hopencard2_Callback,...
-    'Position',[460,230,70,90],'FontSize',cardFS,'BackgroundColor',opencardcolor);
-% 2nd open card
-hopencard3 = uicontrol('Style','pushbutton',...
-    'String','','Callback',@hopencard3_Callback,...
-    'Position',[460,130,70,90],'FontSize',cardFS,'BackgroundColor',opencardcolor);
-% 3th open card
-hdeck = uicontrol('Style','pushbutton',...
-    'String','Deck','Callback',@hdeck_Callback,...
-    'Position',[460,30,70,90],'FontSize',15,'BackgroundColor',deckcolor);
-% Deck pile
+    %% Drawable cards
+    hopencard1 = uicontrol('Style','pushbutton',...
+                           'String','','Callback',@hopencard1_Callback,...
+                           'Position',[460,330,70,90],'FontSize',cardFS,'BackgroundColor',opencardcolor);
+    % 1th open card
+    hopencard2 = uicontrol('Style','pushbutton',...
+                           'String','','Callback',@hopencard2_Callback,...
+                           'Position',[460,230,70,90],'FontSize',cardFS,'BackgroundColor',opencardcolor);
+    % 2nd open card
+    hopencard3 = uicontrol('Style','pushbutton',...
+                           'String','','Callback',@hopencard3_Callback,...
+                           'Position',[460,130,70,90],'FontSize',cardFS,'BackgroundColor',opencardcolor);
+    % 3th open card
+    hdeck = uicontrol('Style','pushbutton',...
+                      'String','Deck','Callback',@hdeck_Callback,...
+                      'Position',[460,30,70,90],'FontSize',15,'BackgroundColor',deckcolor);
+    % Deck pile
 
-%% Player cards
-hP1card1 = uicontrol('Style','pushbutton',...
-    'String','Player 1','Callback',@hP1card1_Callback,...
-    'Position',[900,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
-% P1 1th card
-hP1card2 = uicontrol('Style','pushbutton',...
-    'String','Player 1','Callback',@hP1card2_Callback,...
-    'Position',[820,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
-% P1 2nd card
-hP1card3 = uicontrol('Style','pushbutton',...
-    'String','Player 1','Callback',@hP1card3_Callback,...
-    'Position',[740,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
-% P1 3th card
-hP1card4 = uicontrol('Style','pushbutton',...
-    'String','Player 1','Callback',@hP1card4_Callback,...
-    'Position',[660,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
-% P1 4th card
-hP1card5 = uicontrol('Style','pushbutton',...
-    'String','Player 1','Callback',@hP1card5_Callback,...
-    'Position',[580,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
-% P1 5th card
+    %% Player cards
+    hP1card1 = uicontrol('Style','pushbutton',...
+                         'String','Player 1','Callback',@hP1card1_Callback,...
+                         'Position',[900,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
+    % P1 1th card
+    hP1card2 = uicontrol('Style','pushbutton',...
+                         'String','Player 1','Callback',@hP1card2_Callback,...
+                         'Position',[820,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
+    % P1 2nd card
+    hP1card3 = uicontrol('Style','pushbutton',...
+                         'String','Player 1','Callback',@hP1card3_Callback,...
+                         'Position',[740,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
+    % P1 3th card
+    hP1card4 = uicontrol('Style','pushbutton',...
+                         'String','Player 1','Callback',@hP1card4_Callback,...
+                         'Position',[660,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
+    % P1 4th card
+    hP1card5 = uicontrol('Style','pushbutton',...
+                         'String','Player 1','Callback',@hP1card5_Callback,...
+                         'Position',[580,230,70,90],'FontSize',cardFS,'BackgroundColor',P1color);
+    % P1 5th card
 
-hP2card1 = uicontrol('Style','pushbutton',...
-    'String','Player 2','Callback',@hP2card1_Callback,...
-    'Position',[900,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
-% P1 1th card
-hP2card2 = uicontrol('Style','pushbutton',...
-    'String','Player 2','Callback',@hP2card2_Callback,...
-    'Position',[820,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
-% P1 2nd card
-hP2card3 = uicontrol('Style','pushbutton',...
-    'String','Player 2','Callback',@hP2card3_Callback,...
-    'Position',[740,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
-% P1 3th card
-hP2card4 = uicontrol('Style','pushbutton',...
-    'String','Player 2','Callback',@hP2card4_Callback,...
-    'Position',[660,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
-% P1 4th card
-hP2card5 = uicontrol('Style','pushbutton',...
-    'String','Player 2','Callback',@hP2card5_Callback,...
-    'Position',[580,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
-% P1 5th card
+    hP2card1 = uicontrol('Style','pushbutton',...
+                         'String','Player 2','Callback',@hP2card1_Callback,...
+                         'Position',[900,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
+    % P1 1th card
+    hP2card2 = uicontrol('Style','pushbutton',...
+                         'String','Player 2','Callback',@hP2card2_Callback,...
+                         'Position',[820,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
+    % P1 2nd card
+    hP2card3 = uicontrol('Style','pushbutton',...
+                         'String','Player 2','Callback',@hP2card3_Callback,...
+                         'Position',[740,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
+    % P1 3th card
+    hP2card4 = uicontrol('Style','pushbutton',...
+                         'String','Player 2','Callback',@hP2card4_Callback,...
+                         'Position',[660,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
+    % P1 4th card
+    hP2card5 = uicontrol('Style','pushbutton',...
+                         'String','Player 2','Callback',@hP2card5_Callback,...
+                         'Position',[580,130,70,90],'FontSize',cardFS,'BackgroundColor',P2color);
+    % P1 5th card
 
-%% Game actions
-hdiscardmenu = uicontrol('Style','popup',...
-    'String',' ','Callback',@hdiscardmenu_Callback,...
-    'Position',[840,70,80,30]); % Menu to discard player cards
-hdiscardtitle = uicontrol('Style','text','String','Discard',...
-    'Position',[845,50,70,20]); % Message below hdiscardmenu
-hdestroymenu = uicontrol('Style','popup',...
-    'String',' ','Callback',@hdestroymenu_Callback,...
-    'Position',[760,70,80,30]); % Menu to distroy a bridge
-hdestroytitle = uicontrol('Style','text','String','Destroy',...
-    'Position',[765,50,70,20]); % Message below hdestroymenu
-hbuildmenu = uicontrol('Style','popup',...
-    'String',' ','Callback',@hbuildmenu_Callback,...
-    'Position',[680,70,80,30]); % Menu to build a bridge
-hbuildtitle = uicontrol('Style','text','String','Build',...
-    'Position',[685,50,70,20]); % Message below hbuildmenu
+    %% Game actions
+    hdiscardmenu = uicontrol('Style','popup',...
+                             'String',' ','Callback',@hdiscardmenu_Callback,...
+                             'Position',[840,70,80,30]); % Menu to discard player cards
+    hdiscardtitle = uicontrol('Style','text','String','Discard',...
+                              'Position',[845,50,70,20]); % Message below hdiscardmenu
+    hdestroymenu = uicontrol('Style','popup',...
+                             'String',' ','Callback',@hdestroymenu_Callback,...
+                             'Position',[760,70,80,30]); % Menu to distroy a bridge
+    hdestroytitle = uicontrol('Style','text','String','Destroy',...
+                              'Position',[765,50,70,20]); % Message below hdestroymenu
+    hbuildmenu = uicontrol('Style','popup',...
+                           'String',' ','Callback',@hbuildmenu_Callback,...
+                           'Position',[680,70,80,30]); % Menu to build a bridge
+    hbuildtitle = uicontrol('Style','text','String','Build',...
+                            'Position',[685,50,70,20]); % Message below hbuildmenu
 
-hfinishbutton = uicontrol('Style','pushbutton',...
-    'String','Finish','Callback',@hfinishbutton_Callback,...
-    'Position',[600,70,70,30]); % Pushbotton to finish a player turn
+    hfinishbutton = uicontrol('Style','pushbutton',...
+                              'String','Finish','Callback',@hfinishbutton_Callback,...
+                              'Position',[600,70,70,30]); % Pushbotton to finish a player turn
 
-% Change units to normalized so components resize automatically.
-set([gamefigure,ha,hmessages,hscore,hround,...
-    hopencard1,hopencard2,hopencard3,hdeck,...
-    hP1card1,hP1card2,hP1card3,hP1card4,hP1card5,...
-    hP2card1,hP2card2,hP2card3,hP2card4,hP2card5,...
-    hdiscardmenu,hdestroymenu,hbuildmenu,hfinishbutton,...
-    hdiscardtitle,hdestroytitle,hbuildtitle...
-    hstartbutton,hquitbutton,hmodemenu],...
-    'Units','normalized');
+    % Change units to normalized so components resize automatically.
+    set([gamefigure,ha,hmessages,hscore,hround,...
+         hopencard1,hopencard2,hopencard3,hdeck,...
+         hP1card1,hP1card2,hP1card3,hP1card4,hP1card5,...
+         hP2card1,hP2card2,hP2card3,hP2card4,hP2card5,...
+         hdiscardmenu,hdestroymenu,hbuildmenu,hfinishbutton,...
+         hdiscardtitle,hdestroytitle,hbuildtitle...
+         hstartbutton,hquitbutton,hmodemenu],...
+        'Units','normalized');
 
-%% Islands and bidges
-% Islands
-islandnames = {'Aloa', 'Bari', 'Coco','Duda','Elai','Faa','Gola','Huna','Iffi','Jojo','Kahu','Lale'};
-isabr = ['ABCDEFGHIJKL'];
-% Bridges
-bridges = {'AB','AD','AH',...
-    'BC','BD','BE','BF',...
-    'CF','CG','CK',...
-    'DE','DH',...
-    'EF','EH','EI','EJ'...
-    'FG','FJ',...
-    'GJ','GK',...
-    'HI','HL',...
-    'IJ','IK','IL'...
-    'JK',...
-    'KL'};
+    %% Islands and bidges
+    % Islands
+    islandnames = {'Aloa', 'Bari', 'Coco','Duda','Elai','Faa','Gola','Huna','Iffi','Jojo','Kahu','Lale'};
+    isabr = ['ABCDEFGHIJKL'];
+    % Bridges
+    bridges = {'AB','AD','AH',...
+               'BC','BD','BE','BF',...
+               'CF','CG','CK',...
+               'DE','DH',...
+               'EF','EH','EI','EJ'...
+               'FG','FJ',...
+               'GJ','GK',...
+               'HI','HL',...
+               'IJ','IK','IL'...
+               'JK',...
+               'KL'};
 
-% Positions in pixels
-islandpos = [413,299;... %A
-    225,267;... %B
-    66,257;... %C
-    370,221;... %D
-    286,196;... %E
-    140,217;... %F
-    93,171;... %G
-    382,143;... %H
-    236,123;... %I
-    166,155;... %J
-    125,93;... %K
-    237,47 ... %L
-    ];
-brecpositions = [307,342,303,311;... %AB
-    377,390,243,262;... %AD
-    399,426,163,182;... %AH
-    142,111,283,283;... %BC
-    334,352,254,228;... %BD
-    259,274,253,222;... %BE
-    166,158,262,238;... %BF
-    90,123,248,233;... %CF
-    57,84,227,203;... %CG
-    39,42,209,175;... %CK
-    353,320,220,214;... %DE
-    365,365,199,168;... %DH
-    195,162,211,215;... %EF
-    324,351,191,167;... %EH
-    284,264,175,149;... %EI
-    209,182,187,169;... %EJ
-    129,95,197,184;... %FG
-    136,153,199,168;... %FJ
-    116,147,160,155;... %GJ
-    100,76,155,133;... %GK
-    359,332,140,118;...%HI
-    378,364,89,60;... %HL
-    216,186,139,153;... %IJ
-    184,151,102,93;... %IK
-    281,282,98,63%IL
-    152,130,131,111;... %JK
-    144,178,75,63 ... % KL
-    ];
+    % Positions in pixels
+    islandpos = [413,299;... %A
+                 225,267;... %B
+                 66,257;... %C
+                 370,221;... %D
+                 286,196;... %E
+                 140,217;... %F
+                 93,171;... %G
+                 382,143;... %H
+                 236,123;... %I
+                 166,155;... %J
+                 125,93;... %K
+                 237,47 ... %L
+                ];
+    brecpositions = [307,342,303,311;... %AB
+                     377,390,243,262;... %AD
+                     399,426,163,182;... %AH
+                     142,111,283,283;... %BC
+                     334,352,254,228;... %BD
+                     259,274,253,222;... %BE
+                     166,158,262,238;... %BF
+                     90,123,248,233;... %CF
+                     57,84,227,203;... %CG
+                     39,42,209,175;... %CK
+                     353,320,220,214;... %DE
+                     365,365,199,168;... %DH
+                     195,162,211,215;... %EF
+                     324,351,191,167;... %EH
+                     284,264,175,149;... %EI
+                     209,182,187,169;... %EJ
+                     129,95,197,184;... %FG
+                     136,153,199,168;... %FJ
+                     116,147,160,155;... %GJ
+                     100,76,155,133;... %GK
+                     359,332,140,118;...%HI
+                     378,364,89,60;... %HL
+                     216,186,139,153;... %IJ
+                     184,151,102,93;... %IK
+                     281,282,98,63%IL
+                     152,130,131,111;... %JK
+                     144,178,75,63 ... % KL
+                    ];
 
-%% Mappings
-% index.() maps isabr and bridges strings to the their index
-% isl2bridg.() maps isabr strings to the index of the bridges connected to that
-% island.
-% isl2bcount.() maps isabr strings to the number of bridges of that island.
-for i = 1:length(isabr)
-    isl = isabr(i);
-    index.(char(isl))=i;
-    bindexes = [];
-    count = 0;
-    for j=1:length(bridges)
-        b = char(bridges(j));
-        if(strcmp(isl,b(1)))
-            count = count + 1;
-            bindexes(count) = j;
-        elseif(strcmp(isl,b(2)))
-            count = count + 1;
-            bindexes(count) = j;
+    %% Mappings
+    % index.() maps isabr and bridges strings to the their index
+    % isl2bridg.() maps isabr strings to the index of the bridges connected to that
+    % island.
+    % isl2bcount.() maps isabr strings to the number of bridges of that island.
+    for i = 1:length(isabr)
+        isl = isabr(i);
+        index.(char(isl))=i;
+        bindexes = [];
+        count = 0;
+        for j=1:length(bridges)
+            b = char(bridges(j));
+            if(strcmp(isl,b(1)))
+                count = count + 1;
+                bindexes(count) = j;
+            elseif(strcmp(isl,b(2)))
+                count = count + 1;
+                bindexes(count) = j;
+            end
         end
+        isl2bridg.(isl) = bindexes;
+        isl2bcount.(isl) = length(bindexes);
     end
-    isl2bridg.(isl) = bindexes;
-    isl2bcount.(isl) = length(bindexes);
-end
-for i = 1:length(bridges)
-    b = char(bridges(i));
-    index.(b)=i;
-end
+    for i = 1:length(bridges)
+        b = char(bridges(i));
+        index.(b)=i;
+    end
 
-%% Deck
-deck = ['ABCDEFGHIJKLABCDEFGHIJKL']; % Deck alphabet
+    %% Deck
+    deck = ['ABCDEFGHIJKLABCDEFGHIJKL']; % Deck alphabet
 
-%% Bridges parameters
-bridgelw = 5; % line whith of the bridge (pixels)
+    %% Bridges parameters
+    bridgelw = 5; % line whith of the bridge (pixels)
 
-%% Mathuna parameters
-disx = 10; % Delta x from the island location to build Mathuna diamond
-disy = 10; % Delta y from the island location to build Mathuna diamond
+    %% Mathuna parameters
+    disx = 10; % Delta x from the island location to build Mathuna diamond
+    disy = 10; % Delta y from the island location to build Mathuna diamond
 
-%% Players (1,2)
-% Players structures
-Phand = ['     ';'     '];
-Pnotempcards = [0,0,0,0,0;0,0,0,0,0]; % Not empty cards
-Pscore = [0,0];
-usedbridge = zeros(2,length(bridges)); % birdges displayed
-activematlh = zeros(2,length(isabr)); % island with mathuna
-Pmode = [1,1];
-Pnames = {'P1','P2'};
+    %% Players (1,2)
+    % Players structures
+    Phand = ['     ';'     '];
+    Pnotempcards = [0,0,0,0,0;0,0,0,0,0]; % Not empty cards
+    Pscore = [0,0];
+    usedbridge = zeros(2,length(bridges)); % birdges displayed
+    activematlh = zeros(2,length(isabr)); % island with mathuna
+    Pmode = [1,1];
+    Pnames = {'P1','P2'};
 
-% Players Handles
-Phbridges(1,:) = makebridges(P1color);
-Phbridges(2,:) = makebridges(P2color);
-Phismatlh(1,:) = makemathuna(P1color);
-Phismatlh(2,:) = makemathuna(P2color);
-Pcardshandles = [hP1card1,hP1card2,hP1card3,hP1card4,hP1card5; ...
-    hP2card1,hP2card2,hP2card3,hP2card4,hP2card5];
-menushandles = [hdiscardmenu,hdestroymenu,hbuildmenu];
+    % Players Handles
+    Phbridges(1,:) = makebridges(P1color);
+    Phbridges(2,:) = makebridges(P2color);
+    Phismatlh(1,:) = makemathuna(P1color);
+    Phismatlh(2,:) = makemathuna(P2color);
+    Pcardshandles = [hP1card1,hP1card2,hP1card3,hP1card4,hP1card5; ...
+                     hP2card1,hP2card2,hP2card3,hP2card4,hP2card5];
+    menushandles = [hdiscardmenu,hdestroymenu,hbuildmenu];
 
-%% Open cards
-opencardhandles = [hopencard1,hopencard2,hopencard3];
-emptyopencards = [0 0 0];
+    %% Open cards
+    opencardhandles = [hopencard1,hopencard2,hopencard3];
+    emptyopencards = [0 0 0];
 
-%% Saving data
-fid = 1;
-gamedata = {0,0,0,0,'',0};
-lastactions = '';
-pgamedata = {'','','';'','',''};
-%% Game parameters
-areweplaying = 0; % Control if the game is going or not
-cplayer = 1; % Current player in turn
-cdeckcard = 1; % Next card in the deck
-cdeck = []; % Current deck
-cround = 1; % Current round
-flippause = 2;
-allowfinish = 1;
-allodmodechange = 1;
-gamemode = 1;
-areweprinting = 0;
+    %% Saving data
+    fid = 1;
+    gamedata = {0,0,0,0,'',0};
+    lastactions = '';
+    pgamedata = {'','','';'','',''};
+    %% Game parameters
+    areweplaying = 0; % Control if the game is going or not
+    cplayer = 1; % Current player in turn
+    cdeckcard = 1; % Next card in the deck
+    cdeck = []; % Current deck
+    cround = 1; % Current round
+    flippause = 2;
+    allowfinish = 1;
+    allodmodechange = 1;
+    gamemode = 1;
+    areweprinting = 0;
 
-%% Final game settings
-% Assign the GUI a name to appear in the window title.
-set(gamefigure,'Name','MATLHUNA 1')
-% Move the GUI to the center of the screen.
-movegui(gamefigure,'center')
-% Make the GUI visible.
-set(gamefigure,'Visible','on')
+    %% Final game settings
+    % Assign the GUI a name to appear in the window title.
+    set(gamefigure,'Name','MATLHUNA 1')
+    % Move the GUI to the center of the screen.
+    movegui(gamefigure,'center')
+    % Make the GUI visible.
+    set(gamefigure,'Visible','on')
 
-%% Callbacks
+    %% Callbacks
     function keypress(~,~)
-        % Not used...
+    % Not used...
     end
     function click(~,~)
-        % Not used...
+    % Not used...
     end
 
     function hstartbutton_Callback(~,~)
-        % This function begin the game.
-        % Set the three control variables for callbacks to 1:
-        % ALLOWPAUSE, ALLORESTART, and AREWEPLAYING.
-        % Finally calls @defaultinitround
+    % This function begin the game.
+    % Set the three control variables for callbacks to 1:
+    % ALLOWPAUSE, ALLORESTART, and AREWEPLAYING.
+    % Finally calls @defaultinitround
         allodmodechange = 0;
         areweplaying = 1; % control all callbacks
         cplayer = 1; % Current player in turn
@@ -334,16 +334,16 @@ set(gamefigure,'Visible','on')
         updatepgamedata(otherplayer(cplayer));
         exportdata1();
         if (gamemode  < 3)
-        if (Pmode(cplayer) == 1)
-            hidePcards (otherplayer(cplayer));
-            showPcards (cplayer);
-            for n = 1:3
-                updatepopup(n,cplayer);
-                deck2opencard(n); % place 3 open cards
+            if (Pmode(cplayer) == 1)
+                hidePcards (otherplayer(cplayer));
+                showPcards (cplayer);
+                for n = 1:3
+                    updatepopup(n,cplayer);
+                    deck2opencard(n); % place 3 open cards
+                end
+            else(Pmode(cplayer) == 2)
+                %randomplayer(cplayer);
             end
-        else(Pmode(cplayer) == 2)
-            %randomplayer(cplayer);
-        end
         else
             while(areweplaying)
                 randomplayer(cplayer); % R1
@@ -373,7 +373,7 @@ set(gamefigure,'Visible','on')
         end
     end
 
-% Open cards
+    % Open cards
     function hopencard1_Callback(~,~)
         if (areweplaying)
             card = drawopencard(1);
@@ -515,7 +515,7 @@ set(gamefigure,'Visible','on')
                 exportdata1();
                 
                 if (Pmode(cplayer) == 1)
-                  flipcards(flippause);
+                    flipcards(flippause);
                     defaultmessage();
                     for n = 1:3
                         updatepopup(n,cplayer);
@@ -722,12 +722,12 @@ set(gamefigure,'Visible','on')
         exportdata2();
         if (areweprinting)
             %% Add a final message w the final scores!
-            fprintf(fid,'--------\nFINAL SCORES: %s:%d%s:%d',char(Pnames(1)),Pscore(1),char(Pnames(2)),Pscore(2));
+            fprintf(fid,'--------\nFINAL SCORES: %s %d ; %s %d',char(Pnames(1)),Pscore(1),char(Pnames(2)),Pscore(2));
             fclose(fid);
             areweprinting = 0;
         end
         if (gamemode == 3)
-            pause(1);
+            pause(0);
             hstartbutton_Callback(0,0);
         end
     end
